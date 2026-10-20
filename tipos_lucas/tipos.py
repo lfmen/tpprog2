@@ -12,29 +12,88 @@ class ConversionError(Exception):
     # tiene que guardar la línea y la columna, y el mensaje decir algo como:
     # "Línea 3, columna 'precio': 'ochocientos' no se puede convertir a float"
     def __init__(self, linea, columna, valor, tipo):
-        pass
+        self.linea = linea
+        self.columna = columna
+        self.valor = valor
+        self.tipo = tipo
+        mensaje = (
+            f"Linea {linea}, columna {columna}: {valor} no puede ser convertido a {tipo}"
+        )
+        super().__init__(mensaje)
+
 
 
 def es_nulo(texto):
-    # True si la celda está vacía ("")
-    pass
+    # True si la celda está vacía (""), o con varios espacios ("   "), o si es NaN, None, Null, NA, N/A. Y consideramos tambien como celda vacia a ("---", "____")
+    texto = texto.replace(" ", "").replace("-", "").replace("_", "")
+    texto = texto.lower()
+    return (texto == "" or texto == "nan" or texto == "na" or texto == "n/a" or texto == "null" or texto == "none")
 
 
 def es_booleano(texto):
-    # True si es true, false, verdadero o falso, sin importar mayúsculas
-    pass
+    # Criterio seleccionado: True si es true, false, verdadero o falso, SIN TENER EN CUENTA MAYUSCULAS NI ESPACIOS
+    texto = texto.replace(" ", "")
+    texto_minuscula = texto.lower()
+    return (texto_minuscula == "true" or texto_minuscula == "false" or texto_minuscula == "verdadero" or texto_minuscula == "falso")
+   
 
 
 def es_entero(texto):
     # True si es un número sin coma: "10", "-3", "+7", "00123"
     # False para "", "1.5", "diez"
-    pass
+    try:
+        int(texto)
+        return True
+    except ValueError:
+        return False
 
 
 def es_flotante(texto):
     # True si es un número con decimales: "2.5", "-0.25", "1e3" (los enteros también valen)
-    # ojo que float() acepta "nan" e "inf", y esos tienen que dar False
-    pass
+    # float() acepta "nan" e "inf", y esos tienen que dar False. "nan" no va a aparecer porque primero vemos si es nulo (usando 'es_nulo()') en 'convertir_filas()'
+    if texto == "inf":
+        return False
+        try:
+            float(texto)
+            return True
+        except ValueError:
+            return False
+
+
+
+class FilaIncompletaError(Exception):
+    # Se usa solo al separar las columnas en la funcion 'separar_columnas()'
+    # El error aparece cuando una fila tiene más, o menos celdas que columnas en su encabezado.
+    # Guarda la línea, la cantidad esperada y la encontrada, y transmite el error con su respectivo mensaje.
+    def __init__(self, linea, filas_esperadas, filas_encontradas):
+        self.linea = linea
+        self.filas_esperadas = filas_esperadas
+        self.filas_encontradas = filas_encontradas
+        mensaje = (
+            f" ERROR en Linea {linea}: Se esperaba encontrar {filas_esperadas} filas. Se encontraron {filas_encontradas}"
+        )
+        super().__init__(mensaje)
+
+
+
+
+def separar_columnas(filas, columnas): # -> Se encarga de separar las columnas. Devuelve una lista que contiene adentro otras listas con los valores de las columnas
+                                       # -> Luego, esa lista se usara para inferir los tipos en la funcion 'inferir_tipos()'
+    cantidad_columnas = len(columnas)
+    
+    for numero_linea, celdas in filas:
+        if len(celdas) != cantidad_columnas:
+            raise FilaIncompletaError(numero_linea, cantidad_columnas, len(celdas))
+
+    columnas_separadas = []
+    for j in range(cantidad_columnas):
+        columna = []
+        for numero_linea, celdas in filas:
+            columna.append(celdas[j])
+        columnas_separadas.append(columna)
+
+
+    return columnas_separadas
 
 
 def inferir_tipo(valores):
