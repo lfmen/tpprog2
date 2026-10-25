@@ -68,6 +68,7 @@ class ColumnaInexistenteError(Exception):
 
 
 class FiltroError(Exception):
+    
     # se lanza cuando la función de filtro tira un error con alguna fila
     # (por ejemplo pide fila["stock"] y no existe, o compara None < 10).
     #
@@ -78,8 +79,12 @@ class FiltroError(Exception):
     #   - guardar la línea en self.linea
     #   - armar el mensaje "Línea 9: falló el filtro (...)", con el error adentro del paréntesis,
     #     y pasárselo a super().__init__(mensaje)
+
     def __init__(self, linea, error):
-        pass
+        self.linea = linea
+        self.error = error
+        self.mensaje = f"Línea {linea}: falló el filtro {error}"
+        super().__init__(self.mensaje)
 
 
 def aplicar_n_filas(filas, n_filas):
