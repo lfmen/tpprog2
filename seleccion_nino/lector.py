@@ -109,6 +109,8 @@ def aplicar_n_filas(filas, n_filas):
     # no seguir recorriendo el resto.
     # pista: un for, un contador y break.
     # repasar: U3, generadores -> "Funciones generadoras". U1, ejecución repetitiva -> "La sentencia break"
+    if n_filas <= 0:
+        return []
     counter = 1
     for fila in filas:
         yield fila
