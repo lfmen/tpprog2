@@ -1,57 +1,89 @@
-# TP Programación II: lector de tablas
+<img src="https://raw.githubusercontent.com/ee-unr/programacion-2/main/imgs/serpiente.png" width="60" align="right" alt="serpiente de la cátedra">
 
-![python](https://img.shields.io/badge/python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white) ![materia](https://img.shields.io/badge/programaci%C3%B3n%20II-UNR%202026-555?style=flat-square) ![estado](https://img.shields.io/badge/estado-en%20desarrollo-orange?style=flat-square)
+# Lector de datos tabulares
 
-Morello, Nino Julián · Capella, Lucas · Mengarelli, Luca Franco
+Trabajo práctico grupal de Programación II. Facultad de Ciencias Económicas y Estadística, UNR, 2026.
 
-Lee tablas guardadas en archivos de texto (CSV y parecidos) y las devuelve como una lista de
-diccionarios. La lectura está hecha a mano, sin el módulo `csv` ni los lectores de pandas.
+![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white) ![Programación II, UNR 2026](https://img.shields.io/badge/Programaci%C3%B3n_II-UNR_2026-2b2b2b?style=flat-square)
 
-| Carpeta | Parte | Responsable |
+Módulo de Python que lee tablas almacenadas en archivos de texto plano (CSV y formatos similares)
+y las devuelve como una lista de diccionarios. El análisis del texto y la conversión de tipos están
+implementados sin el módulo `csv` ni los lectores de pandas.
+
+| Integrante | Parte | Carpeta |
 |---|---|---|
-| `lectura_mengarelli` | Leer el archivo y separar los campos. | Mengarelli, Luca Franco |
-| `seleccion_nino` | Elegir filas y columnas. Función `leer_tabla`. | Morello, Nino Julián |
-| `tipos_lucas` | Convertir los valores a su tipo. | Capella, Lucas |
+| Mengarelli, Luca Franco | Lectura y separación de campos | `lectura` |
+| Capella, Lucas | Conversión de tipos | `tipos_lucas` |
+| Morello, Nino Julián | Selección de filas y columnas | `seleccion_nino` |
 
-## Uso
+## Funcionamiento
 
-<!-- nino: un ejemplo de leer_tabla y una tabla con cada parámetro (separador, encabezado, tipos,
-n_filas, rango, columnas, filtro): qué recibe y qué hace. -->
+La lectura se resuelve en tres etapas. Cada una recibe el resultado de la anterior.
 
-## Organización
+```mermaid
+flowchart LR
+    A[archivo] --> B["leer_filas<br/>(lectura)"]
+    B -- "texto" --> C["convertir_filas<br/>(tipos)"]
+    C -- "valores con su tipo" --> D["leer_tabla<br/>(selección)"]
+    D --> E[lista de diccionarios]
+```
 
-<!-- todos: por qué lo dividimos en tres pasos (leer, convertir, seleccionar) y qué otras opciones
-pensamos (una sola función grande, una clase Tabla...). por qué elegimos esta y no otra. -->
+Cada fila conserva su número de línea en el archivo, de modo que todo error indica dónde ocurrió.
 
 ## Lectura
 
-<!-- luca: separador por defecto y otros (";", tab, espacios, cualquiera de varios caracteres),
-comillas, qué pasa con nombres de columnas vacíos o repetidos, archivos sin encabezado. -->
-
-## Tipos
-
-<!-- lucas: tipos soportados. criterio para adivinar el tipo de una columna (ej. 10, 20 y 30.5;
-números mezclados con texto; columna toda vacía). qué textos son booleanos. cómo quedan los nulos.
-tipos elegidos por el usuario y el ejemplo de 00123. qué pasa si un valor no se puede convertir. -->
-
-## Selección
-
-<!-- nino: cómo se usa cada opción. cómo se numeran las filas y si el rango incluye los extremos.
-si el rango va antes o después del filtro. si con n_filas y filtro se miran las primeras n o se sigue
-hasta juntar n. si se puede filtrar por una columna que no se muestra. qué pasa al combinar todo. -->
+- **Separador.** Por defecto es la coma. Puede ser cualquier texto (`;`, `\t`, `||`) o `None`, que
+  toma como separador cualquier cantidad de espacios o tabulaciones.
+- **Comillas.** Un campo entre comillas no se divide aunque contenga el separador
+  (`"Santa Clara, California"`) y puede ocupar varias líneas. Dentro de él, `""` representa una comilla.
+  Una comilla en medio de un campo (`ab"c`) se toma como texto.
+- **Espacios.** Se eliminan al principio y al final de cada campo, salvo dentro de las comillas.
+- **Encabezado.** La primera fila da nombre a las columnas. Un nombre vacío se reemplaza por
+  `columna_N` y uno repetido por `nombre_2`, `nombre_3`, con un aviso (`EncabezadoWarning`).
+  Con `encabezado=False` todas las columnas se llaman `columna_1`, `columna_2`, etc.
+- **Líneas vacías.** Se omiten. Una línea con solo separadores (`,,`) no se considera vacía: produce campos vacíos.
+- **Archivo con solo encabezado.** Devuelve las columnas y ninguna fila.
+- **Codificación.** Se lee en UTF-8, ignorando el carácter inicial que agrega Excel. Si el archivo
+  no es UTF-8, se lee en cp1252, la codificación de Excel en Windows.
+- **Número de línea.** Corresponde a la línea del archivo donde comienza la fila.
 
 ## Errores
 
-<!-- todos, cada uno lo de su parte: archivo vacío, filas vacías, filas con distinta cantidad de
-campos, valores que no se pueden convertir, columna que no existe, filtro que falla. qué hace el
-lector en cada caso y un ejemplo de mensaje (con fila y columna cuando corresponde). -->
+| Situación | Resultado |
+|---|---|
+| Archivo vacío | `ArchivoVacioError` |
+| Fila con distinta cantidad de campos que el encabezado | `CantidadCamposError`, con la línea |
+| Comilla que no se cierra | `ComillasError`, con la línea |
+| Separador vacío (`""`) | `ValueError` |
+
+## Visualización
+
+`demo.py` muestra cada resultado de dos formas: como lista de diccionarios, que es lo que devuelve
+el lector, y como `DataFrame` de pandas. Se muestran ambas porque pandas modifica la representación
+de algunos valores; por ejemplo, un `None` en una columna de texto aparece como `NaN`.
+
+```
+pip install -r requirements.txt
+python demo.py
+```
+
+pandas se usa solo en la demostración, nunca dentro del lector.
 
 ## Pruebas
 
-<!-- todos: cómo se corren y qué cubren (lectura normal, combinación de opciones y casos con
-problemas). qué archivos de ejemplo hay en datos/. -->
+Desde la carpeta del proyecto:
 
-## Visualización con pandas
+```
+python -m lectura.pruebas
+```
 
-<!-- demo (sin asignar): cómo se pasa el resultado a DataFrame y por qué mostramos también la
-lista original (pandas cambia tipos y nulos, por ejemplo None en una columna de números queda NaN). -->
+<!--
+pendiente, cada uno agrega su seccion cuando termine:
+- uso (nino): ejemplo de leer_tabla y para que sirve cada parametro
+- tipos (lucas): como se elige el tipo de cada columna (10, 20, 30.5 / numeros y texto / columna vacia),
+  que textos son booleanos, como quedan los nulos, tipo elegido por el usuario (00123) y que pasa si no se puede convertir
+- seleccion (nino): numeracion de filas, si el rango incluye los extremos, orden entre rango, filtro y n_filas,
+  filtrar por una columna que no se muestra
+- organizacion (todos): que otras opciones pensamos y por que elegimos esta
+- errores y pruebas: agregar lo de tipos y seleccion
+-->
