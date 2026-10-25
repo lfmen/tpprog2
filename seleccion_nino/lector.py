@@ -109,7 +109,12 @@ def aplicar_n_filas(filas, n_filas):
     # no seguir recorriendo el resto.
     # pista: un for, un contador y break.
     # repasar: U3, generadores -> "Funciones generadoras". U1, ejecución repetitiva -> "La sentencia break"
-    pass
+    counter = 1
+    for fila in filas:
+        yield fila
+        counter += 1
+        if counter > n_filas:
+            break
 
 
 def aplicar_rango(filas, desde, hasta):
