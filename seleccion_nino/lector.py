@@ -54,6 +54,7 @@ from tipos_lucas.tipos import convertir_filas
 
 
 class ColumnaInexistenteError(Exception):
+
     # se lanza cuando el usuario pide una columna que no está en la tabla.
     #
     # recibe: columna, el nombre que pidió (por ejemplo "stock")
@@ -63,8 +64,11 @@ class ColumnaInexistenteError(Exception):
     #
     # es igual a las excepciones de lectura/lectura.py, se puede copiar el patrón de ahí.
     # repasar: U2, excepciones -> "Excepciones a medida" y "Agregar información a la excepción"
+
     def __init__(self, columna):
-        pass
+        self.columna = columna
+        self.mensaje = f"No existe la columna {columna}"
+        super().__init__(self.mensaje)
 
 
 class FiltroError(Exception):
