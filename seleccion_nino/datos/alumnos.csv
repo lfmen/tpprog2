@@ -1,0 +1,11 @@
+legajo,apellido,carrera,nota,regular
+L-1001,Gómez,Estadística,8,true
+L-1002,Pérez,Ciencia de Datos,5,false
+L-1003,Fernández,Estadística,9,true
+L-1004,López,Contador Público,6,true
+L-1005,Martínez,Ciencia de Datos,10,true
+L-1006,Sosa,Estadística,4,false
+L-1007,Romero,Ciencia de Datos,7,true
+L-1008,Díaz,Contador Público,,false
+L-1009,Álvarez,Ciencia de Datos,8,true
+L-1010,Torres,Estadística,6,true

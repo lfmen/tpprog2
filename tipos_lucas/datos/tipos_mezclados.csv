@@ -1,0 +1,5 @@
+entero,decimal,mezcla_numeros,texto,numeros_y_texto,booleano,vacia
+10,1.5,10,hola,10,true,
+-3,2.0,20,chau,abc,False,
++7,1e3,30.5,123,5.5,VERDADERO,
+00123,-0.25,40,,true,falso,
