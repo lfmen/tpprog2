@@ -1,0 +1,5 @@
+area,,herramienta,herramienta
+DevOps,Development + Operations,Docker,Kubernetes
+MLOps,Machine Learning + Operations,MLflow,Kubeflow
+DataOps,Data + Operations,Airflow,dbt
+Deep Learning,,PyTorch,TensorFlow
