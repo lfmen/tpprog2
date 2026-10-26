@@ -55,16 +55,6 @@ from tipos_lucas.tipos import convertir_filas
 
 class ColumnaInexistenteError(Exception):
 
-    # se lanza cuando el usuario pide una columna que no está en la tabla.
-    #
-    # recibe: columna, el nombre que pidió (por ejemplo "stock")
-    # tiene que:
-    #   - guardarlo en self.columna
-    #   - armar el mensaje "No existe la columna 'stock'" y pasárselo a super().__init__(mensaje)
-    #
-    # es igual a las excepciones de lectura/lectura.py, se puede copiar el patrón de ahí.
-    # repasar: U2, excepciones -> "Excepciones a medida" y "Agregar información a la excepción"
-
     def __init__(self, columna):
         self.columna = columna
         self.mensaje = f"No existe la columna {columna}"
@@ -73,17 +63,6 @@ class ColumnaInexistenteError(Exception):
 
 class FiltroError(Exception):
     
-    # se lanza cuando la función de filtro tira un error con alguna fila
-    # (por ejemplo pide fila["stock"] y no existe, o compara None < 10).
-    #
-    # recibe:
-    #   linea: el número de línea de la fila donde falló (por ejemplo 9)
-    #   error: el error original que tiró el filtro
-    # tiene que:
-    #   - guardar la línea en self.linea
-    #   - armar el mensaje "Línea 9: falló el filtro (...)", con el error adentro del paréntesis,
-    #     y pasárselo a super().__init__(mensaje)
-
     def __init__(self, linea, error):
         self.linea = linea
         self.error = error
@@ -92,63 +71,29 @@ class FiltroError(Exception):
 
 
 def aplicar_n_filas(filas, n_filas):
-    # LA MÁS FÁCIL, empezar por esta.
-    #
-    # recibe:
-    #   filas: las filas (lista de tuplas como la de arriba)
-    #   n_filas: un entero, cuántas filas quiere el usuario
-    # hace: deja pasar las filas de a una hasta llegar a n_filas, y ahí corta
-    # devuelve (con yield, de a una): esas filas, sin tocarlas
-    #
-    # ejemplos:
-    #   list(aplicar_n_filas(filas, 2))   -> Cuaderno y Lapicera
-    #   list(aplicar_n_filas(filas, 0))   -> []
-    #   list(aplicar_n_filas(filas, 10))  -> las 3 (no hay más)
-    #
-    # ojo: con 0 no tiene que dar ninguna. y hay que cortar apenas llega al número (break),
-    # no seguir recorriendo el resto.
-    # pista: un for, un contador y break.
-    # repasar: U3, generadores -> "Funciones generadoras". U1, ejecución repetitiva -> "La sentencia break"
+
     if n_filas <= 0:
         return []
-    counter = 1
+    contador = 1
     for fila in filas:
         yield fila
-        counter += 1
-        if counter > n_filas:
+        contador += 1
+        if contador > n_filas:
             break
 
 
 def aplicar_rango(filas, desde, hasta):
-    if desde < 1:
-        raise ValueError
-    counter = 1
+    
+    contador = 1
     for fila in filas:
-        if counter < desde:
-            counter +=1
+        if contador < desde:
+            contador +=1
             continue
-
-        yield fila
-        counter += 1
-        if hasta is not None and counter > hasta:
+            
+        if hasta is not None and contador > hasta:
             break
-    # recibe:
-    #   filas: las filas
-    #   desde: número de la primera fila que se quiere
-    #   hasta: número de la última fila que se quiere, o None (que quiere decir "hasta el final")
-    # hace: deja pasar solo las filas cuya posición está entre desde y hasta.
-    #       se cuenta desde 1 y los dos extremos se incluyen.
-    # devuelve (con yield, de a una): esas filas, sin tocarlas
-    #
-    # ejemplos:
-    #   list(aplicar_rango(filas, 2, 3))     -> Lapicera y Carpeta
-    #   list(aplicar_rango(filas, 2, None))  -> Lapicera y Carpeta (de la 2 hasta el final)
-    #   list(aplicar_rango(filas, 1, 1))     -> solo Cuaderno
-    #
-    # ojo: la posición NO es el número de línea. Cuaderno está en la línea 2 pero es la fila 1.
-    # la posición sale de ir contando mientras se recorren.
-    # pista: enumerate (empieza en 0, hay que sumarle 1). cuando se pasa de hasta, break.
-    # repasar: U1, colecciones de datos -> "Secuencias" (enumerate)
+        yield fila
+        contador += 1
 
 
 def aplicar_filtro(filas, filtro):
