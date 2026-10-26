@@ -1,10 +1,8 @@
-"""Lectura: abre el archivo y separa cada línea en campos.
+"""Lectura: abre el archivo y separa cada línea en campos, todo como texto (convertir es tarea de tipos).
 
-Todo queda como texto. La conversión a números, booleanos y nulos la hace tipos.
-
-Uso:
-    from lectura.lectura import leer_filas
     columnas, filas = leer_filas("lectura/datos/juegos.csv")
+
+Las funciones van de la general a las más chicas: leer_filas usa a las de abajo.
 """
 
 import warnings
@@ -31,131 +29,127 @@ class EncabezadoWarning(UserWarning):
     """Aviso de que se le cambió el nombre a una columna del encabezado."""
 
 
-def separar(linea, separador, numero_linea=None):
-    """Parte una línea en campos.
+def leer_filas(ruta, separador=",", encabezado=True):
+    """Devuelve las columnas y las filas, cada fila con su número de línea para ubicar errores.
 
-    Con separador None separa cualquier cantidad de espacios o tabulaciones.
-    Lo que está entre comillas no se corta ni se recorta: separar('"Santa Clara, CA",1971', ",")
-    da ["Santa Clara, CA", "1971"]. Si una comilla abre y no cierra, lanza ComillasError.
+    (["nombre", "precio"], [(2, ["Cuaderno", "2500.5"]), (3, ["Lapicera", "800.0"])])
+    Sin encabezado, las columnas se llaman columna_1, columna_2...
     """
-    # se recorre caracter por caracter porque split no sabe de comillas
-    campos = []
-    actual = ""
-    con_comillas = False  # lo que estaba entre comillas no se recorta
-    entre_comillas = False
-    i = 0
-    while i < len(linea):
-        caracter = linea[i]
-        if entre_comillas:
-            if linea[i:i + 2] == '""':  # comilla escapada
-                actual += '"'
-                i += 1  # con el i += 1 del final saltea las dos comillas
-            elif caracter == '"':
-                entre_comillas = False
-            else:
-                actual += caracter
-        elif separador is None and caracter in " \t":
-            if actual != "" or con_comillas:
-                campos.append(actual)
-                actual = ""
-                con_comillas = False
-        elif separador is not None and linea[i:i + len(separador)] == separador:
-            campos.append(actual if con_comillas else actual.strip())
-            actual = ""
-            con_comillas = False
-            i += len(separador) - 1  # con el i += 1 del final saltea todo el separador
-        elif caracter == '"' and actual.strip() == "" and not con_comillas:
-            entre_comillas = True
-            con_comillas = True
-            actual = ""
-        elif not (con_comillas and caracter in " \t"):  # los espacios despues de cerrar se ignoran
-            actual += caracter
-        i += 1
+    if separador == "":
+        raise ValueError("El separador no puede estar vacío")
+    filas = list(separar_filas(leer_texto(ruta), separador))
+    if not filas:
+        raise ArchivoVacioError(ruta)
 
-    if entre_comillas:
-        raise ComillasError(numero_linea)
-    if separador is not None:
-        campos.append(actual if con_comillas else actual.strip())
-    elif actual != "" or con_comillas:
-        campos.append(actual)
-    return campos
+    if encabezado:
+        columnas = arreglar_encabezado(filas[0][1])
+        filas = filas[1:]
+    else:
+        columnas = [f"columna_{j}" for j in range(1, len(filas[0][1]) + 1)]
+
+    for numero, valores in filas:
+        if len(valores) != len(columnas):
+            raise CantidadCamposError(numero, len(columnas), len(valores))
+    return columnas, filas
+
+
+def leer_texto(ruta):
+    """Devuelve el contenido del archivo. Excel guarda en utf-8 con BOM (el -sig lo saca) o en cp1252."""
+    try:
+        with open(ruta, encoding="utf-8-sig") as archivo:
+            return archivo.read()
+    except UnicodeDecodeError:
+        with open(ruta, encoding="cp1252") as archivo:
+            return archivo.read()
+
+
+def separar_filas(texto, separador):
+    """Da (numero de línea, campos) por cada fila, salteando las líneas vacías.
+
+    Si una fila tiene un campo entre comillas con un salto de línea adentro, junta las líneas
+    y la fila queda con el número de la línea donde empieza.
+    """
+    pendiente = ""  # fila con una comilla abierta, que sigue en la línea de abajo
+    for i, linea in enumerate(texto.split("\n"), 1):
+        if pendiente:
+            linea = pendiente + "\n" + linea
+        elif not linea.strip():
+            continue
+        else:
+            numero = i
+        valores = separar(linea, separador)
+        if valores is None:
+            pendiente = linea
+        else:
+            pendiente = ""
+            yield numero, valores
+    if pendiente:
+        raise ComillasError(numero)
 
 
 def arreglar_encabezado(nombres):
-    """Les pone nombre a las columnas vacías y numera las repetidas, con un aviso por cada cambio.
+    """Nombra las columnas vacías y numera las repetidas, con un aviso por cada cambio.
 
     ["area", "", "herramienta", "herramienta"] -> ["area", "columna_2", "herramienta", "herramienta_2"]
     """
-    # sets porque buscar en un set es directo y en una lista hay que recorrerla
-    resultado = []
-    usados = set()
-    originales = set(nombres)
-    for i, nombre in enumerate(nombres):
+    resultado, usados, originales = [], set(), set(nombres)  # sets: buscar en ellos es directo
+    for i, nombre in enumerate(nombres, 1):
         if nombre == "":
-            nombre = f"columna_{i + 1}"
-            warnings.warn(f"La columna {i + 1} no tiene nombre, se va a llamar {nombre}", EncabezadoWarning)
-
+            nombre = f"columna_{i}"
+            warnings.warn(f"La columna {i} no tiene nombre, se va a llamar {nombre}", EncabezadoWarning)
         if nombre in usados:
             numero = 2
             while f"{nombre}_{numero}" in usados or f"{nombre}_{numero}" in originales:
                 numero += 1
-            nuevo = f"{nombre}_{numero}"
-            warnings.warn(f"La columna {nombre} está repetida, se va a llamar {nuevo}", EncabezadoWarning)
-            nombre = nuevo
-
+            warnings.warn(f"La columna {nombre} está repetida, se va a llamar {nombre}_{numero}", EncabezadoWarning)
+            nombre = f"{nombre}_{numero}"
         resultado.append(nombre)
         usados.add(nombre)
     return resultado
 
 
-def leer_filas(ruta, separador=",", encabezado=True):
-    """Lee el archivo y devuelve las columnas y las filas, todo como texto.
+def separar(linea, separador):
+    """Parte una línea en campos sin cortar lo que está entre comillas.
 
-    Cada fila viene con su número de línea, para que los errores digan dónde está el problema:
-    (["nombre", "precio"], [(2, ["Cuaderno", "2500.5"]), (3, ["Lapicera", "800.0"])])
-
-    Con encabezado=False las columnas se llaman columna_1, columna_2...
+    Con separador None corta en cualquier cantidad de espacios. Si una comilla queda abierta
+    devuelve None, porque la fila sigue en la línea de abajo.
     """
-    if separador == "":
-        raise ValueError("El separador no puede estar vacío")
-    try:
-        with open(ruta, encoding="utf-8-sig") as archivo:  # -sig por el caracter raro que pone excel
-            texto = archivo.read()
-    except UnicodeDecodeError:  # excel en windows guarda en cp1252
-        with open(ruta, encoding="cp1252") as archivo:
-            texto = archivo.read()
-
-    # un solo recorrido: separa, arma el encabezado y controla la cantidad de campos
-    columnas = None
-    filas = []
-    pendiente = ""  # una fila con un campo entre comillas que sigue en la linea de abajo
-    for i, linea in enumerate(texto.split("\n")):
-        if pendiente != "":
-            linea = pendiente + "\n" + linea  # numero queda en la linea donde empezo la fila
-        elif linea.strip() == "":  # las lineas vacias se saltean
-            continue
+    campos, actual, con_comillas = [], "", False  # con_comillas: el campo vino entre comillas y no se recorta
+    i = 0
+    while i <= len(linea):  # la vuelta de más, con caracter "", cierra el último campo
+        caracter = linea[i:i + 1]
+        if caracter == "" or (linea.startswith(separador, i) if separador else caracter.isspace()):
+            if separador or actual or con_comillas:  # sin separador, muchos espacios cuentan como uno
+                campos.append(actual if con_comillas else actual.strip())
+            actual, con_comillas = "", False
+            i += len(separador or " ")
+        elif caracter == '"' and not con_comillas and not actual.strip():
+            leido = leer_comillas(linea, i + 1)
+            if leido is None:
+                return None
+            actual, i = leido
+            con_comillas = True
         else:
-            numero = i + 1
+            if not (con_comillas and caracter.isspace()):  # los espacios después de cerrar se ignoran
+                actual += caracter
+            i += 1
+    return campos
 
-        try:
-            valores = separar(linea, separador, numero)
-        except ComillasError:
-            pendiente = linea
-            continue
-        pendiente = ""
 
-        if columnas is None:
-            if encabezado:
-                columnas = arreglar_encabezado(valores)
-                continue
-            columnas = [f"columna_{j + 1}" for j in range(len(valores))]
+def leer_comillas(linea, i):
+    """Lee desde la posición i hasta la comilla que cierra. Dos comillas seguidas son una comilla.
 
-        if len(valores) != len(columnas):
-            raise CantidadCamposError(numero, len(columnas), len(valores))
-        filas.append((numero, valores))
-
-    if pendiente != "":
-        raise ComillasError(numero)
-    if columnas is None:
-        raise ArchivoVacioError(ruta)
-    return columnas, filas
+    Devuelve (lo leído, posición después de la comilla que cierra), o None si no cierra.
+    leer_comillas('"a ""b"", c",d', 1) -> ('a "b", c', 12)
+    """
+    leido = ""
+    while i < len(linea):
+        if linea.startswith('""', i):
+            leido += '"'
+            i += 2
+        elif linea[i] == '"':
+            return leido, i + 1
+        else:
+            leido += linea[i]
+            i += 1
+    return None
