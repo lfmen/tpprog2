@@ -120,6 +120,18 @@ def aplicar_n_filas(filas, n_filas):
 
 
 def aplicar_rango(filas, desde, hasta):
+    if desde < 1:
+        raise ValueError
+    counter = 1
+    for fila in filas:
+        if counter < desde:
+            counter +=1
+            continue
+
+        yield fila
+        counter += 1
+        if hasta is not None and counter > hasta:
+            break
     # recibe:
     #   filas: las filas
     #   desde: número de la primera fila que se quiere
@@ -137,7 +149,6 @@ def aplicar_rango(filas, desde, hasta):
     # la posición sale de ir contando mientras se recorren.
     # pista: enumerate (empieza en 0, hay que sumarle 1). cuando se pasa de hasta, break.
     # repasar: U1, colecciones de datos -> "Secuencias" (enumerate)
-    pass
 
 
 def aplicar_filtro(filas, filtro):
