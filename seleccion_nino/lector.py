@@ -96,36 +96,21 @@ def aplicar_rango(filas, desde, hasta):
         contador += 1
 
 
-def aplicar_filtro(filas, filtro): #Luca revisa esto que realmente no sé que más se supone que hay que atrapar con except
+def aplicar_filtro(filas, filtro):
 
-    if not callable(filtro):
-        raise FiltroError(1, "str(filtro), no es llamable")
-
-    for fila in filas:
-        if filtro(fila):
-            yield fila
-            
-    # recibe:
-    #   filas: las filas
-    #   filtro: una función que recibe UNA fila (el diccionario, sin el número de línea)
-    #           y devuelve True o False. ejemplo: lambda fila: fila["cantidad"] < 10
-    # hace: deja pasar solo las filas para las que filtro(fila) da True
-    # devuelve (con yield, de a una): esas filas, con su número de línea como venían
-    #
-    # ejemplo:
-    #   list(aplicar_filtro(filas, lambda fila: fila["cantidad"] < 10))
-    #   -> [(4, {"nombre": "Carpeta", "precio": 3200.0, "cantidad": 8})]
-    #
-    # ojo: el filtro lo escribe el usuario y puede fallar con cualquier error.
-    # no hay que dejar que salga ese error suelto: se atrapa con try / except Exception
-    # y se lanza FiltroError(numero_linea, error) con raise ... from error.
-    # repasar: U3, fundamentos -> "Funciones anónimas" (lambda) y "Ciudadanos de primera clase".
-    #          U2, excepciones -> "Manejo de excepciones" y "Propagación avanzada" (raise ... from ...)
+    for numero_linea, fila in filas:
+        try:
+            cumple = filtro(fila)
+        except Exception as error:  # el filtro lo escribe el usuario y puede fallar con cualquier error
+            raise FiltroError(numero_linea, error) from error
+        if cumple:
+            yield numero_linea, fila
 
 
 def elegir_columnas(filas, columnas):
 
-    [{k: v for k, v in d[1].items() if k in columnas} for d in filas] 
+    return [{columna: fila[columna] for columna in columnas} for numero_linea, fila in filas]
+
 
 def seleccionar(filas, columnas_tabla, n_filas=None, rango=None, columnas=None, filtro=None):
     # junta las cuatro anteriores.
