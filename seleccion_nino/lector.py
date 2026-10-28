@@ -96,7 +96,15 @@ def aplicar_rango(filas, desde, hasta):
         contador += 1
 
 
-def aplicar_filtro(filas, filtro):
+def aplicar_filtro(filas, filtro): #Luca revisa esto que realmente no sé que más se supone que hay que atrapar con except
+
+    if not callable(filtro):
+        raise FiltroError(1, "str(filtro), no es llamable")
+
+    for fila in filas:
+        if filtro(fila):
+            yield fila
+            
     # recibe:
     #   filas: las filas
     #   filtro: una función que recibe UNA fila (el diccionario, sin el número de línea)
@@ -113,7 +121,6 @@ def aplicar_filtro(filas, filtro):
     # y se lanza FiltroError(numero_linea, error) con raise ... from error.
     # repasar: U3, fundamentos -> "Funciones anónimas" (lambda) y "Ciudadanos de primera clase".
     #          U2, excepciones -> "Manejo de excepciones" y "Propagación avanzada" (raise ... from ...)
-    pass
 
 
 def elegir_columnas(filas, columnas):
