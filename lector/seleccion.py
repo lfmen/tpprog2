@@ -155,7 +155,36 @@ def seleccionar(filas, columnas_tabla, n_filas=None, rango=None, columnas=None, 
         seleccionar(filas, ["nombre", "precio"], columnas=["nombre"], filtro=lambda fila: fila["precio"] > 1000)
         -> [{"nombre": "Cuaderno"}, {"nombre": "Carpeta"}]
     """
-    pass
+    if columnas == None:
+        columnas = columnas_tabla
+    else:
+        for columna in columnas:
+            if columna not in columnas_tabla:
+                raise ColumnaInexistenteError(columna)
+
+    if n_filas is not None and n_filas < 0:
+        raise ValueError("n_filas no puede ser negativo")
+
+    if n_filas == None:
+        skip = True
+
+    if rango[0] < 1 or rango[0] > rango[1]:
+        raise ValueError("rango solicitado incompatible")
+
+    if rango == None:
+        rango = (1, len(filas))
+
+    if filtro == None:
+        filtro = lambda x: x
+
+
+    filas = aplicar_rango(filas, rango[0], rango[1])
+    filas = aplicar_filtro(filas, filtro)
+    if not skip: filas = aplicar_n_filas(filas, n_filas)
+    
+    filas = elegir_columnas(filas, columnas)
+
+    return filas
 
 
 def leer_tabla(ruta, separador=",", encabezado=True, tipos=None,
@@ -185,4 +214,6 @@ def leer_tabla(ruta, separador=",", encabezado=True, tipos=None,
         leer_tabla("productos.csv", columnas=["nombre", "precio"], filtro=lambda fila: fila["stock"] < 10)
         -> [{"nombre": "Teclado mecánico", "precio": 62000.0}]
     """
-    pass
+    columnas_tabla, filas = leer_filas(ruta, separador, encabezado)
+    filas = convertir_filas(columnas_tabla, filas, tipos)
+    return seleccionar(filas, columnas_tabla, n_filas, rango, columnas, filtro)
