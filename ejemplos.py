@@ -2,7 +2,7 @@
 
     python ejemplos.py
 
-Usa los tres archivos de la carpeta datos:
+Usa los tres archivos que están al lado:
     productos.csv  separado por comas, con encabezado, comillas y una celda vacía
     empleados.txt  separado por espacios, sin encabezado, con comillas
     clientes.csv   separado por punto y coma, guardado con Excel, con el encabezado mal armado
@@ -10,11 +10,11 @@ Usa los tres archivos de la carpeta datos:
 
 import warnings
 
-from seleccion_nino import leer_tabla
+from lector.seleccion import leer_tabla
 
-PRODUCTOS = "datos/productos.csv"
-EMPLEADOS = "datos/empleados.txt"
-CLIENTES = "datos/clientes.csv"
+PRODUCTOS = "productos.csv"
+EMPLEADOS = "empleados.txt"
+CLIENTES = "clientes.csv"
 
 
 def mostrar(titulo, filas):
