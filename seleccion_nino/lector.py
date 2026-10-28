@@ -124,24 +124,8 @@ def aplicar_filtro(filas, filtro): #Luca revisa esto que realmente no sé que m�
 
 
 def elegir_columnas(filas, columnas):
-    # recibe:
-    #   filas: las filas
-    #   columnas: lista con los nombres de las columnas que se quieren, en el orden en que se quieren.
-    #             ejemplo: ["nombre", "precio"]
-    # hace: de cada fila se queda solo con esas columnas y le saca el número de línea
-    # devuelve (una lista normal, NO yield): la lista final de diccionarios, lo que ve el usuario
-    #
-    # ejemplo:
-    #   elegir_columnas(filas, ["nombre", "precio"])
-    #   -> [{"nombre": "Cuaderno", "precio": 2500.5},
-    #       {"nombre": "Lapicera", "precio": 800.0},
-    #       {"nombre": "Carpeta", "precio": 3200.0}]
-    #
-    # pista: sale en una línea, con una lista por comprensión que adentro tiene
-    # un diccionario por comprensión.
-    # repasar: U3, funciones de orden superior -> "Comprehensions"
-    pass
 
+    [{k: v for k, v in d[1].items() if k in columnas} for d in filas] 
 
 def seleccionar(filas, columnas_tabla, n_filas=None, rango=None, columnas=None, filtro=None):
     # junta las cuatro anteriores.
