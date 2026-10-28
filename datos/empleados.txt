@@ -1,0 +1,9 @@
+"Ana Gómez"        34   "Ventas"          true
+"Bruno Pérez"      41   "Sistemas"        false
+"Carla Fernández"  29   "Sistemas"        true
+"Diego López"      52   "Administración"  false
+"Elena Martínez"   38   "Recursos Humanos" false
+"Federico Sosa"    26   "Ventas"          true
+"Gabriela Romero"  45   "Administración"  false
+"Hernán Díaz"      31   "Sistemas"        true
+"Inés Álvarez"     47   "Ventas"          false

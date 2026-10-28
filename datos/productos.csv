@@ -1,0 +1,13 @@
+nombre,categoria,precio,stock,calificacion,importado
+Auriculares inalámbricos,Electrónica,45999.99,12,4.6,true
+Cuaderno A4,Librería,3500,80,4.2,false
+Mochila urbana,Accesorios,28999,15,4.7,true
+"Lámpara de escritorio, LED",Hogar,12500,20,4.4,false
+Teclado mecánico,Electrónica,62000,7,4.8,true
+Taza de cerámica,Hogar,4200,35,,false
+Mouse inalámbrico,Electrónica,18999.5,25,4.5,true
+Lapicera de gel,Librería,1200,150,4.1,false
+Botella térmica,Accesorios,15999,18,4.6,true
+Almohadón,Hogar,8999.99,22,4.0,false
+"Cargador USB-C, 20W",Electrónica,21000,30,4.3,true
+Agenda 2027,Librería,9800,40,4.5,false

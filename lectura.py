@@ -1,6 +1,6 @@
 """Lectura: abre el archivo y separa cada línea en campos, todo como texto (convertir es tarea de tipos).
 
-    columnas, filas = leer_filas("lectura/datos/juegos.csv")
+    columnas, filas = leer_filas("datos/productos.csv")
 
 Las funciones van de la general a las más chicas: leer_filas usa a las de abajo.
 """

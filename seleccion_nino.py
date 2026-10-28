@@ -49,8 +49,8 @@
 #
 # para el readme: un párrafo corto con las decisiones de arriba.
 
-from lectura.lectura import leer_filas
-from tipos_lucas.tipos import convertir_filas
+from lectura import leer_filas
+from tipos_lucas import convertir_filas
 
 
 class ColumnaInexistenteError(Exception):
