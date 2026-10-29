@@ -5,71 +5,85 @@ Las funciones van de la más chica a la principal, convertir_filas, que usa a to
     filas = convertir_filas(["nombre", "precio"], [(2, ["Cuaderno", "2500.5"])])
 """
 
-TIPOS = [bool, int, float, str]
-
 
 class ConversionError(Exception):
-    """Un valor no se puede convertir al tipo de su columna."""
+    """ConversionError es un error para aportar contexto.
+
+    Sucede cuando el usuario pidió un tipo para una columna y un valor no se puede convertir.
+    """
 
     def __init__(self, linea, columna, valor, tipo):
         self.linea = linea
         self.columna = columna
         self.valor = valor
         self.tipo = tipo
-        super().__init__(f"Línea {linea}, columna '{columna}': '{valor}' no se puede convertir a {tipo.__name__}")
+        mensaje = (
+            f"Línea {linea}, columna {columna}: {valor} no puede ser convertido a {tipo.__name__}"
+        )
+        super().__init__(mensaje)
 
 
 def es_nulo(texto):
-    """Revisa si la celda está vacía (o tiene solo espacios), que es como se representa un nulo.
+    """Revisa si el argumento dado es una celda vacía, lo cual implica que es un valor nulo (None).
+
+    True si la celda está vacía ("").
+    False para cualquier otro caso.
 
     Parameters
     ----------
     texto : str
-        El contenido de una celda.
+        Un dato de una celda.
 
     Returns
     -------
     bool
-        True si la celda está vacía.
+        Si el argumento es, o no es nulo.
     """
-    return texto.strip() == ""
+    texto = texto.replace(" ", "")
+    texto = texto.lower()
+    return (texto == "")
 
 
 def es_booleano(texto):
-    """Revisa si el texto es un booleano: true, false, verdadero o falso.
+    """Revisa si el argumento dado es un booleano (True o False).
 
-    No se tienen en cuenta las mayúsculas ni los espacios de los costados.
+    Criterio seleccionado: la revisión devolverá True si el argumento es true, false, verdadero
+    o falso, SIN TENER EN CUENTA MAYÚSCULAS NI ESPACIOS de los costados.
 
     Parameters
     ----------
     texto : str
-        El contenido de una celda.
+        Un dato de una celda.
 
     Returns
     -------
     bool
-        True si el texto es un booleano.
+        Si el argumento es, o no es booleano.
     """
-    texto_minuscula = texto.strip().lower()
-    return (texto_minuscula == "true" or texto_minuscula == "false"
-            or texto_minuscula == "verdadero" or texto_minuscula == "falso")
+    texto = texto.strip()
+    texto_minuscula = texto.lower()
+    return (texto_minuscula == "true" or texto_minuscula == "false" or texto_minuscula == "verdadero" or texto_minuscula == "falso")
 
 
 def es_entero(texto):
-    """Revisa si el texto es un número entero, sin coma.
+    """Revisa si el argumento dado es un valor entero (int).
+
+    True si es un número sin coma (algunos ejemplos: "10", "-3", "+7", "00123").
+    False para cualquier otro caso (algunos ejemplos: "", "1.5", "diez").
 
     Parameters
     ----------
     texto : str
-        El contenido de una celda.
+        Un dato de una celda.
 
     Returns
     -------
     bool
-        True para "10", "-3", "+7" o "00123". False para "", "1.5" o "diez".
+        Si el argumento es, o no es entero.
     """
     if "_" in texto:  # int() acepta "1_000", que en una tabla no es un número
         return False
+
     try:
         int(texto)
         return True
@@ -78,65 +92,80 @@ def es_entero(texto):
 
 
 def es_flotante(texto):
-    """Revisa si el texto es un número con decimales. Los enteros también valen.
+    """Revisa si el argumento dado es un valor flotante (float).
+
+    True si es un número con decimales (algunos ejemplos: "2.5", "-0.25", "1e3"; los enteros
+    también valen).
+    False para cualquier caso contrario (float acepta "nan" e "inf", pero acá tiene que dar False).
 
     Parameters
     ----------
     texto : str
-        El contenido de una celda.
+        Un dato de una celda.
 
     Returns
     -------
     bool
-        True para "2.5", "-0.25", "1e3" o "10". False para "inf", "nan" o "diez".
+        Si el argumento es, o no es flotante.
     """
     if "_" in texto:  # float() acepta "1_000.5", que en una tabla no es un número
         return False
+
     try:
         numero = float(texto)
     except ValueError:
         return False
 
-    # float() también acepta "inf" y "nan", que en una tabla son texto.
-    # nan es el único valor que no es igual a sí mismo, por eso se compara así
+    # Para esta parte, analizamos la posibilidad de que el valor sea "+-inf" o "nan" (valores que
+    # acepta float). El único valor que no es igual a sí mismo es nan, por eso lo comparamos
     es_infinito = numero == float("inf") or numero == float("-inf")
+
     es_nan = numero != numero
+
     return not (es_infinito or es_nan)
 
 
 def transformar_a_booleano(texto):
-    """Convierte un texto que ya pasó por es_booleano en True o False.
+    """Transforma los datos "verdadero" y "true" a True, y "falso" y "false" a False.
+
+    Sin tener en cuenta mayúsculas ni espacios de los costados.
 
     Parameters
     ----------
     texto : str
-        Un booleano escrito como texto.
+        Un dato de una celda que ya pasó por la revisión de es_booleano(), y su resultado fue True
+        (ahora se lo transforma según cuál sea).
 
     Returns
     -------
     bool
-        True para "true" o "verdadero", False para "false" o "falso".
+        True si el argumento es "verdadero" o "true", False si es "falso" o "false".
     """
     texto_limpio = texto.strip().lower()
-    return texto_limpio == "true" or texto_limpio == "verdadero"
+    return (texto_limpio == "true" or texto_limpio == "verdadero")
 
 
 def separar_columnas(filas, columnas):
-    """Agrupa las celdas por columna, para poder mirar cada columna entera.
+    """Se encarga de separar las celdas por sus respectivas columnas.
 
     Parameters
     ----------
     filas : list of tuple of (int, list of str)
-        Las filas que da leer_filas: el número de línea y las celdas.
-        [(2, ["Cuaderno", "2500.5"]), (3, ["Lapicera", "800"])]
+        Filas del archivo. Es una lista de tuplas, donde el primer elemento de las mismas es el
+        número de línea (int), y el segundo elemento es otra lista, que contiene las celdas de esa
+        fila (strings). Ejemplo:
+            filas = [(2, ["Cuaderno", "2500.5"]), (3, ["Lapicera", "800"])]
     columnas : list of str
-        Los nombres de las columnas, en el mismo orden que las celdas.
+        Nombres de las columnas, tomados del encabezado del archivo. Su orden coincide con el de
+        las celdas de cada fila. Ejemplo:
+            columnas = ["nombre", "precio"]
 
     Returns
     -------
     list of list of str
-        Una lista por columna, con sus celdas.
-        [["Cuaderno", "Lapicera"], ["2500.5", "800"]]
+        Una lista de listas, donde cada lista contiene las celdas agrupadas por sus columnas.
+        Ejemplo:
+            columnas_separadas = [["Cuaderno", "Lapicera"], ["2500.5", "800"]]
     """
     cantidad_columnas = len(columnas)
 
@@ -146,21 +175,23 @@ def separar_columnas(filas, columnas):
         for numero_linea, celdas in filas:
             columna.append(celdas[posicion])
         columnas_separadas.append(columna)
+
     return columnas_separadas
 
 
 def sacar_nulos(valores):
-    """Quita las celdas vacías de una columna.
+    """Quita los valores vacíos de una columna.
 
     Parameters
     ----------
     valores : list of str
-        Las celdas de una columna, por ejemplo ["10", "20", "30", ""].
+        Es una lista que contiene las celdas de una columna (incluyendo sus vacíos). Ejemplo:
+            valores = ["10", "20", "30", ""]
 
     Returns
     -------
     list of str
-        Las mismas celdas sin las vacías.
+        Lista que contiene a las celdas de una columna sin sus vacíos.
     """
     sin_nulos = []
     for valor in valores:
@@ -170,23 +201,25 @@ def sacar_nulos(valores):
 
 
 def inferir_tipo(valores):
-    """Adivina el tipo de una columna mirando todos sus valores.
-
-    Se elige el primero de bool, int y float que sirva para todos los valores que no son nulos.
-    Si ninguno sirve, o si la columna está toda vacía, es str.
+    """Intenta adivinar/inferir el tipo de los valores que le pasaron.
 
     Parameters
     ----------
     valores : list of str
-        Las celdas de una columna.
+        Es una lista que contiene las celdas de una columna. Ejemplo:
+            valores = ["10", "20", "30"]
 
     Returns
     -------
     type
-        bool, int, float o str.
-        ["10", "20", "30.5"] -> float, ["10", "hola"] -> str, [] -> str
+        El tipo que sirve para todos los valores no nulos: bool, int, float o str. Se elige el
+        primero que cumplen todos, en ese orden. Devuelve str si ningún otro tipo sirve para todos,
+        o si no quedan valores después de sacar los nulos. Ejemplos:
+            ["10", "20", "30.5"] -> float
+            ["10", "hola"] -> str
+            [] -> str (columna toda vacía)
     """
-    sin_nulos = sacar_nulos(valores)
+    sin_nulos = (sacar_nulos(valores))
 
     if len(sin_nulos) == 0:
         return str
@@ -209,27 +242,34 @@ def inferir_tipo(valores):
         return int
     if todos_float:
         return float
+
     return str
 
 
 def convertir_celda(texto, tipo, linea, columna):
-    """Convierte una celda al tipo indicado.
+    """Convierte el texto de una celda al tipo indicado.
+
+    Si la celda está vacía devuelve None. Para bool y float valida antes de convertir; para int
+    deja que int() detecte el error. Cualquier otro tipo se trata como texto.
 
     Parameters
     ----------
     texto : str
-        El contenido de la celda, tal cual vino del archivo.
+        Contenido de una sola celda, tal cual vino del archivo.
     tipo : type
-        bool, int, float o str: el que eligió el usuario o el que se adivinó para la columna.
+        Tipo al que hay que convertir la celda: bool, int, float o str. Lo recibe de
+        convertir_filas, desde el tipo elegido por el usuario o el inferido para esa columna.
     linea : int
-        El número de línea de la celda, solo para el mensaje de error.
+        Número de línea de la celda en el archivo. No interviene en la conversión, solo se usa
+        para armar el mensaje de ConversionError.
     columna : str
-        El nombre de la columna, solo para el mensaje de error.
+        Nombre de la columna a la que pertenece la celda. Igual que linea, solo se usa para el
+        mensaje de error.
 
     Returns
     -------
     bool or int or float or str or None
-        El valor convertido, o None si la celda está vacía.
+        El valor convertido al tipo pedido, o None si la celda está vacía.
     """
     if es_nulo(texto):
         return None
@@ -240,48 +280,56 @@ def convertir_celda(texto, tipo, linea, columna):
                 raise ValueError
             return transformar_a_booleano(texto)
         if tipo is int:
-            if not es_entero(texto):
-                raise ValueError
             return int(texto)
         if tipo is float:
             if not es_flotante(texto):
                 raise ValueError
             return float(texto)
-        return texto  # lectura ya recortó lo que no vino entre comillas
+        return texto.strip()
     except ValueError:
         raise ConversionError(linea, columna, texto, tipo)
 
 
 def convertir_filas(columnas, filas, tipos=None):
-    """Convierte las celdas de cada fila a su tipo. Es la función principal.
+    """Convierte las celdas de cada fila a su tipo correspondiente. Es la función principal.
 
-    Cada columna usa el tipo que eligió el usuario y, si no eligió ninguno, el que se adivina
-    mirando toda la columna.
+    Para cada columna usa el tipo elegido por el usuario; si no eligió ninguno, lo infiere
+    mirando los valores de toda la columna. Si el usuario nombra una columna que no existe o un
+    tipo que no es bool, int, float ni str, da ValueError.
 
     Parameters
     ----------
     columnas : list of str
-        Los nombres de las columnas, en el mismo orden que las celdas.
+        Nombres de las columnas, tomados del encabezado del archivo. Su orden coincide con el de
+        las celdas de cada fila.
     filas : list of tuple of (int, list of str)
-        Las filas que da leer_filas: el número de línea y las celdas.
+        Filas del archivo. Es una lista de tuplas, donde el primer elemento de las mismas es el
+        número de línea (int), y el segundo elemento es otra lista, que contiene las celdas de esa
+        fila (strings).
     tipos : dict, optional
-        Los tipos que eligió el usuario, como {"precio": float}. Por defecto es None (se
-        adivinan todos).
+        Tipos elegidos por el usuario, con el formato {nombre_de_columna: tipo}. Por defecto es
+        None (se infiere todo si el usuario no provee tipo). Ejemplo:
+            tipos = {"precio": float}
 
     Returns
     -------
     list of tuple of (int, dict)
-        Por cada fila, su número de línea y un diccionario {columna: valor}.
-        [(2, {"nombre": "Cuaderno", "precio": 2500.5}), (3, {"nombre": "Lapicera", "precio": 800.0})]
+        Una tupla por cada fila de entrada que contiene el número de línea y un diccionario que
+        contiene como key el nombre de la columna, y como valor la celda que pertenece a esa
+        columna y a esa línea correspondiente. Ejemplo:
+            resultado = [
+                (2, {"nombre": "Cuaderno", "precio": 2500.5}),
+                (3, {"nombre": "Lapicera", "precio": 800.0}),
+            ]
     """
     if tipos is None:
         tipos = {}
 
     for nombre in tipos:  # si no, un nombre mal escrito o un tipo raro se ignorarían sin avisar
         if nombre not in columnas:
-            raise ValueError(f"No existe la columna '{nombre}' para elegirle el tipo")
-        if tipos[nombre] not in TIPOS:
-            raise ValueError(f"El tipo de la columna '{nombre}' tiene que ser bool, int, float o str")
+            raise ValueError(f"No existe la columna {nombre} para elegirle el tipo")
+        if tipos[nombre] not in [bool, int, float, str]:
+            raise ValueError(f"El tipo de la columna {nombre} tiene que ser bool, int, float o str")
 
     columnas_separadas = separar_columnas(filas, columnas)
 
@@ -298,7 +346,7 @@ def convertir_filas(columnas, filas, tipos=None):
         fila_convertida = {}
         for posicion in range(len(columnas)):
             nombre = columnas[posicion]
-            fila_convertida[nombre] = convertir_celda(celdas[posicion], tipos_finales[posicion],
-                                                      numero_linea, nombre)
+            fila_convertida[nombre] = convertir_celda(celdas[posicion], tipos_finales[posicion], numero_linea, nombre)
         resultado.append((numero_linea, fila_convertida))
+
     return resultado

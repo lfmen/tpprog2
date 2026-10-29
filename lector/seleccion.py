@@ -11,6 +11,7 @@ Decisiones:
     - El orden es siempre rango, filtro, n_filas y al final columnas.
     - Si se piden 10 filas con un filtro, se sigue leyendo hasta tener 10 que cumplan.
     - El filtro recibe la fila entera, así que se puede filtrar por una columna que no se muestra.
+    - Las columnas elegidas salen en el orden en que están en la tabla.
 """
 
 from lector.lectura import leer_filas
@@ -22,7 +23,8 @@ class ColumnaInexistenteError(Exception):
 
     def __init__(self, columna):
         self.columna = columna
-        super().__init__(f"No existe la columna '{columna}'")
+        self.mensaje = f"No existe la columna {columna}"
+        super().__init__(self.mensaje)
 
 
 class FiltroError(Exception):
@@ -31,7 +33,8 @@ class FiltroError(Exception):
     def __init__(self, linea, error):
         self.linea = linea
         self.error = error
-        super().__init__(f"Línea {linea}: falló el filtro ({error})")
+        self.mensaje = f"Línea {linea}: falló el filtro {error}"
+        super().__init__(self.mensaje)
 
 
 def aplicar_n_filas(filas, n_filas):
@@ -54,9 +57,11 @@ def aplicar_n_filas(filas, n_filas):
     """
     if n_filas <= 0:
         return
-    for numero, fila in enumerate(filas, 1):
+    contador = 1
+    for fila in filas:
         yield fila
-        if numero == n_filas:
+        contador += 1
+        if contador > n_filas:
             break
 
 
@@ -77,11 +82,16 @@ def aplicar_rango(filas, desde, hasta):
     tuple of (int, dict)
         Las filas del rango.
     """
-    for numero, fila in enumerate(filas, 1):
-        if hasta is not None and numero > hasta:
+    contador = 1
+    for fila in filas:
+        if contador < desde:
+            contador += 1
+            continue
+
+        if hasta is not None and contador > hasta:
             break
-        if numero >= desde:
-            yield fila
+        yield fila
+        contador += 1
 
 
 def aplicar_filtro(filas, filtro):
@@ -116,14 +126,14 @@ def elegir_columnas(filas, columnas):
     filas : iterable of tuple of (int, dict)
         Las filas, cada una con su número de línea.
     columnas : list of str
-        Las columnas que se quieren, en el orden en que se quieren.
+        Las columnas que se quieren.
 
     Returns
     -------
     list of dict
-        Una fila por diccionario, con las columnas pedidas.
+        Una fila por diccionario, con las columnas pedidas en el orden de la tabla.
     """
-    return [{columna: fila[columna] for columna in columnas} for numero_linea, fila in filas]
+    return [{k: v for k, v in d[1].items() if k in columnas} for d in filas]
 
 
 def seleccionar(filas, columnas_tabla, n_filas=None, rango=None, columnas=None, filtro=None):
@@ -152,10 +162,11 @@ def seleccionar(filas, columnas_tabla, n_filas=None, rango=None, columnas=None, 
     -------
     list of dict
         Las filas elegidas, con las columnas elegidas.
-        seleccionar(filas, ["nombre", "precio"], columnas=["nombre"], filtro=lambda fila: fila["precio"] > 1000)
+        seleccionar(filas, ["nombre", "precio"], columnas=["nombre"],
+                    filtro=lambda fila: fila["precio"] > 1000)
         -> [{"nombre": "Cuaderno"}, {"nombre": "Carpeta"}]
     """
-    if columnas == None:
+    if columnas is None:
         columnas = columnas_tabla
     else:
         for columna in columnas:
@@ -165,23 +176,24 @@ def seleccionar(filas, columnas_tabla, n_filas=None, rango=None, columnas=None, 
     if n_filas is not None and n_filas < 0:
         raise ValueError("n_filas no puede ser negativo")
 
-    if n_filas == None:
+    skip = False
+    if n_filas is None:
         skip = True
 
-    if rango[0] < 1 or rango[0] > rango[1]:
+    if rango is None:
+        rango = (1, None)
+
+    if rango[0] < 1 or (rango[1] is not None and rango[0] > rango[1]):
         raise ValueError("rango solicitado incompatible")
 
-    if rango == None:
-        rango = (1, len(filas))
-
-    if filtro == None:
+    if filtro is None:
         filtro = lambda x: x
-
 
     filas = aplicar_rango(filas, rango[0], rango[1])
     filas = aplicar_filtro(filas, filtro)
-    if not skip: filas = aplicar_n_filas(filas, n_filas)
-    
+    if not skip:
+        filas = aplicar_n_filas(filas, n_filas)
+
     filas = elegir_columnas(filas, columnas)
 
     return filas
