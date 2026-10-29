@@ -17,11 +17,11 @@ class ArchivoVacioError(Exception):
 
 
 class CantidadCamposError(Exception):
-    """Una fila tiene distinta cantidad de campos que el encabezado."""
+    """Una fila tiene distinta cantidad de campos que la primera (el encabezado, si hay)."""
 
     def __init__(self, linea, esperados, encontrados):
         self.linea = linea
-        super().__init__(f"Línea {linea}: tiene {encontrados} campos y el encabezado tiene {esperados}")
+        super().__init__(f"Línea {linea}: tiene {encontrados} campos y la primera fila tiene {esperados}")
 
 
 class ComillasError(Exception):
@@ -70,7 +70,7 @@ def leer_comillas(linea, i):
 def separar(linea, separador):
     """Parte una línea en campos sin cortar lo que está entre comillas.
 
-    Los campos se recortan, salvo los que vienen entre comillas.
+    A cada campo se le sacan los espacios de los costados, venga o no entre comillas.
 
     Parameters
     ----------
@@ -85,7 +85,9 @@ def separar(linea, separador):
         Los campos, o None si una comilla queda abierta (la fila sigue en la línea de abajo).
         separar(' a ,"b, c"', ",") -> ["a", "b, c"]
     """
-    campos, actual, con_comillas = [], "", False  # con_comillas: el campo vino entre comillas
+    campos = []
+    actual = ""
+    con_comillas = False  # si el campo actual vino entre comillas
     i = 0
     while i <= len(linea):  # la vuelta de más, con caracter "", cierra el último campo
         caracter = linea[i:i + 1]
@@ -96,8 +98,9 @@ def separar(linea, separador):
 
         if es_corte:
             if separador or actual or con_comillas:  # sin separador, muchos espacios cuentan como uno
-                campos.append(actual if con_comillas else actual.strip())
-            actual, con_comillas = "", False
+                campos.append(actual.strip())
+            actual = ""
+            con_comillas = False
             i += len(separador) if separador else 1
         elif caracter == '"' and not con_comillas and not actual.strip():
             leido = leer_comillas(linea, i + 1)
@@ -106,8 +109,7 @@ def separar(linea, separador):
             actual, i = leido
             con_comillas = True
         else:
-            if caracter.strip() or not con_comillas:  # los espacios después de cerrar se ignoran
-                actual += caracter
+            actual += caracter
             i += 1
     return campos
 
@@ -126,17 +128,20 @@ def arreglar_encabezado(nombres):
         Los nombres arreglados.
         ["area", "", "herramienta", "herramienta"] -> ["area", "columna_2", "herramienta", "herramienta_2"]
     """
-    resultado, usados, originales = [], set(), set(nombres)  # en un set buscar es directo (U4)
-    for i, nombre in enumerate(nombres, 1):
+    resultado = []
+    usados = set()  # sets y no listas porque buscar en un set es más rápido
+    originales = set(nombres)
+    for i, nombre in enumerate(nombres):
         if nombre == "":
-            nombre = f"columna_{i}"
-            warnings.warn(f"La columna {i} no tiene nombre, se va a llamar {nombre}", EncabezadoWarning)
+            nombre = f"columna_{i + 1}"
+            warnings.warn(f"La columna {i + 1} no tiene nombre, se va a llamar {nombre}", EncabezadoWarning)
         if nombre in usados:
             numero = 2
             while f"{nombre}_{numero}" in usados or f"{nombre}_{numero}" in originales:
                 numero += 1
-            warnings.warn(f"La columna {nombre} está repetida, se va a llamar {nombre}_{numero}", EncabezadoWarning)
-            nombre = f"{nombre}_{numero}"
+            nuevo = f"{nombre}_{numero}"
+            warnings.warn(f"La columna {nombre} está repetida, se va a llamar {nuevo}", EncabezadoWarning)
+            nombre = nuevo
         resultado.append(nombre)
         usados.add(nombre)
     return resultado
@@ -161,13 +166,13 @@ def separar_filas(texto, separador):
         El número de línea y los campos de la fila.
     """
     pendiente = ""  # fila con una comilla abierta, que sigue en la línea de abajo
-    for i, linea in enumerate(texto.split("\n"), 1):
+    for i, linea in enumerate(texto.split("\n")):
         if pendiente:
             linea = pendiente + "\n" + linea
         elif not linea.strip():
             continue
         else:
-            numero = i
+            numero = i + 1  # enumerate cuenta desde 0 y las líneas del archivo desde 1
         valores = separar(linea, separador)
         if valores is None:
             pendiente = linea
