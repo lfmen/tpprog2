@@ -18,7 +18,7 @@ y las devuelve como una lista de diccionarios.
 ## Cómo se usa
 
 En Positron: File, Open Folder, y elegir la carpeta del TP. Para ver los ejemplos, abrir
-`ejemplos.py` y ejecutarlo con el botón ▷ (o Ctrl+Shift+Enter). También anda desde la terminal,
+`ejemplos.py` y ejecutarlo con el botón de ejecutar (o Ctrl+Shift+Enter). También anda desde la terminal,
 estando en cualquier carpeta:
 
 ```bash
@@ -30,11 +30,11 @@ Para leer cualquier archivo, desde la consola o desde un programa guardado en es
 ```python
 from lector.seleccion import leer_tabla
 
-leer_tabla("niveles.csv")
-# [{'nombre': 'The Summit B-Hell Side', 'oficial': False, 'tier': 13, 'full_clear': True, ...}, ...]
+leer_tabla("retos.csv")
+# [{'reto': 'The Summit B-Hell Side', 'tier': 13, 'etiquetas': 'C/FC'}, ...]
 
-leer_tabla("niveles.csv", columnas=["nombre", "tier"], filtro=lambda fila: fila["tier"] >= 12)
-# [{'nombre': 'The Summit B-Hell Side', 'tier': 13}, {'nombre': 'Glyph D Side', 'tier': 12}]
+leer_tabla("retos.csv", columnas=["reto", "tier"], filtro=lambda fila: fila["tier"] >= 12)
+# [{'reto': 'The Summit B-Hell Side', 'tier': 13}, {'reto': 'Glyph D Side', 'tier': 12}]
 ```
 
 Si el archivo está en otra carpeta, se pasa la ruta completa con `/`:
@@ -51,7 +51,7 @@ Si el archivo está en otra carpeta, se pasa la ruta completa con `/`:
 | `columnas` | Qué columnas devolver. | `columnas=["nombre", "precio"]` |
 
 Para verlo como tabla, en el programa de la demostración y no en el lector:
-`pd.DataFrame(leer_tabla("niveles.csv"))`. Hay que mostrar también la lista, porque pandas
+`pd.DataFrame(leer_tabla("retos.csv"))`. Hay que mostrar también la lista, porque pandas
 muestra los `None` como `NaN`.
 
 ## Cómo funciona
@@ -147,8 +147,8 @@ ahí no existe `__file__`.
 
 | Archivo | Qué prueba |
 |---|---|
-| `niveles.csv` | Comas, encabezado, finales de línea de Windows, una línea vacía, comas entre comillas, celdas vacías |
-| `empleados.txt` | Separado por espacios, sin encabezado, campos con espacios entre comillas |
+| `retos.csv` | Comas, encabezado, finales de línea de Windows, una línea vacía, comas entre comillas, celdas vacías |
+| `empleados.txt` | Separado por espacios, sin encabezado, campos con espacios entre comillas, una columna con enteros y decimales |
 | `lugares.csv` | Punto y coma, guardado por Excel (con BOM), una columna repetida y otra sin nombre |
 
 ## Organización
@@ -163,7 +163,7 @@ G17_Capella_Mengarelli_Morello/
 │   ├── tipos.py        convierte cada valor a su tipo
 │   └── seleccion.py    elige filas y columnas, y tiene leer_tabla
 ├── ejemplos.py         ejemplos de uso, con los tres archivos de abajo
-├── niveles.csv         separado por comas, con encabezado
+├── retos.csv           separado por comas, con encabezado
 ├── empleados.txt       separado por espacios, sin encabezado
 └── lugares.csv         separado por punto y coma, guardado con Excel
 ```

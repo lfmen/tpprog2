@@ -3,7 +3,7 @@
 Todos los campos quedan como texto: convertirlos es tarea de tipos.py. Las funciones van de la
 más chica a la principal, leer_filas, que usa a todas las de arriba:
 
-    columnas, filas = leer_filas("niveles.csv")
+    columnas, filas = leer_filas("retos.csv")
 """
 
 import warnings
@@ -169,7 +169,7 @@ def separar_filas(texto, separador):
     for i, linea in enumerate(texto.split("\n")):
         if pendiente:
             linea = pendiente + "\n" + linea
-        elif not linea.strip():
+        elif not linea.strip() and not (separador and separador in linea):  # "\t\t" sí es una fila
             continue
         else:
             numero = i + 1  # enumerate cuenta desde 0 y las líneas del archivo desde 1

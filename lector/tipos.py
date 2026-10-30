@@ -249,8 +249,8 @@ def inferir_tipo(valores):
 def convertir_celda(texto, tipo, linea, columna):
     """Convierte el texto de una celda al tipo indicado.
 
-    Si la celda está vacía devuelve None. Para bool y float valida antes de convertir; para int
-    deja que int() detecte el error. Cualquier otro tipo se trata como texto.
+    Si la celda está vacía devuelve None. Para bool, int y float valida antes de convertir, así
+    "1_000" da error aunque int() lo acepte. Cualquier otro tipo se trata como texto.
 
     Parameters
     ----------
@@ -280,6 +280,8 @@ def convertir_celda(texto, tipo, linea, columna):
                 raise ValueError
             return transformar_a_booleano(texto)
         if tipo is int:
+            if not es_entero(texto):
+                raise ValueError
             return int(texto)
         if tipo is float:
             if not es_flotante(texto):
