@@ -30,11 +30,11 @@ Para leer cualquier archivo, desde la consola o desde un programa guardado en es
 ```python
 from lector.seleccion import leer_tabla
 
-leer_tabla("productos.csv")
-# [{'nombre': 'Auriculares inalámbricos', 'categoria': 'Electrónica', 'precio': 45999.99, ...}, ...]
+leer_tabla("niveles.csv")
+# [{'nombre': 'The Summit B-Hell Side', 'oficial': False, 'tier': 13, 'full_clear': True, ...}, ...]
 
-leer_tabla("productos.csv", columnas=["nombre", "precio"], filtro=lambda fila: fila["stock"] < 10)
-# [{'nombre': 'Teclado mecánico', 'precio': 62000.0}]
+leer_tabla("niveles.csv", columnas=["nombre", "tier"], filtro=lambda fila: fila["tier"] >= 12)
+# [{'nombre': 'The Summit B-Hell Side', 'tier': 13}, {'nombre': 'Glyph D Side', 'tier': 12}]
 ```
 
 Si el archivo está en otra carpeta, se pasa la ruta completa con `/`:
@@ -51,7 +51,7 @@ Si el archivo está en otra carpeta, se pasa la ruta completa con `/`:
 | `columnas` | Qué columnas devolver. | `columnas=["nombre", "precio"]` |
 
 Para verlo como tabla, en el programa de la demostración y no en el lector:
-`pd.DataFrame(leer_tabla("productos.csv"))`. Hay que mostrar también la lista, porque pandas
+`pd.DataFrame(leer_tabla("niveles.csv"))`. Hay que mostrar también la lista, porque pandas
 muestra los `None` como `NaN`.
 
 ## Cómo funciona
@@ -141,15 +141,15 @@ Un archivo que solo tiene el encabezado no es un error: da `[]`.
 ## Ejemplos
 
 `ejemplos.py` muestra lo que devuelve el lector y abajo lo que se esperaba. Tiene 6 ejemplos de
-lectura y tipos, 2 de selección (uno es el de la consigna) y 7 errores. Encuentra los datos al lado
+lectura y tipos, 2 de selección (uno como el de la consigna) y 7 errores. Encuentra los datos al lado
 suyo, así que anda desde cualquier carpeta. No hay que correrlo de a líneas en la consola, porque
 ahí no existe `__file__`.
 
 | Archivo | Qué prueba |
 |---|---|
-| `productos.csv` | Comas, encabezado, una línea vacía, comas entre comillas, una celda vacía |
+| `niveles.csv` | Comas, encabezado, finales de línea de Windows, una línea vacía, comas entre comillas, celdas vacías |
 | `empleados.txt` | Separado por espacios, sin encabezado, campos con espacios entre comillas |
-| `clientes.csv` | Punto y coma, guardado por Excel (con BOM), una columna repetida y otra sin nombre |
+| `lugares.csv` | Punto y coma, guardado por Excel (con BOM), una columna repetida y otra sin nombre |
 
 ## Organización
 
@@ -163,7 +163,7 @@ G17_Capella_Mengarelli_Morello/
 │   ├── tipos.py        convierte cada valor a su tipo
 │   └── seleccion.py    elige filas y columnas, y tiene leer_tabla
 ├── ejemplos.py         ejemplos de uso, con los tres archivos de abajo
-├── productos.csv       separado por comas, con encabezado
+├── niveles.csv         separado por comas, con encabezado
 ├── empleados.txt       separado por espacios, sin encabezado
-└── clientes.csv        separado por punto y coma, guardado con Excel
+└── lugares.csv         separado por punto y coma, guardado con Excel
 ```

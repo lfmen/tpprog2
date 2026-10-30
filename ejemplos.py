@@ -11,9 +11,9 @@ from lector.seleccion import leer_tabla
 
 CARPETA = Path(__file__).parent  # la carpeta de este archivo, donde están los datos
 
-PRODUCTOS = CARPETA / "productos.csv"  # separado por comas, con encabezado
+NIVELES = CARPETA / "niveles.csv"      # separado por comas, con encabezado
 EMPLEADOS = CARPETA / "empleados.txt"  # separado por espacios, sin encabezado
-CLIENTES = CARPETA / "clientes.csv"    # separado por punto y coma, guardado con Excel
+LUGARES = CARPETA / "lugares.csv"      # separado por punto y coma, guardado con Excel
 VACIO = CARPETA / "vacio.csv"          # se crea y se borra en el ejemplo de archivo vacío
 
 
@@ -36,37 +36,38 @@ def mostrar_error(titulo, ruta, **opciones):
 
 if __name__ == "__main__":
     print("----- Lectura y tipos -----")
-    mostrar("Tipos adivinados", "precio float, stock int, calificacion float, importado bool",
-            PRODUCTOS, n_filas=2)
-    mostrar("Tipo elegido por el usuario", "stock queda como texto: '12' y '80'",
-            PRODUCTOS, n_filas=2, tipos={"stock": str}, columnas=["nombre", "stock"])
-    mostrar("Línea vacía y coma entre comillas", "Mochila urbana y Lámpara de escritorio, LED",
-            PRODUCTOS, rango=(3, 4), columnas=["nombre"])
-    mostrar("Celda vacía", "calificacion None",
-            PRODUCTOS, rango=(6, 6), columnas=["nombre", "calificacion"])
+    mostrar("Tipos adivinados", "oficial bool, tier int, full_clear bool, condicion None",
+            NIVELES, n_filas=2)
+    mostrar("Tipo elegido por el usuario", "tier queda como texto: '13' y '12'",
+            NIVELES, n_filas=2, tipos={"tier": str}, columnas=["nombre", "tier"])
+    mostrar("Línea vacía y coma entre comillas",
+            "Superposition, Kero Summit y Last Night con 'sin morir, todos los lados'",
+            NIVELES, rango=(4, 6), columnas=["nombre", "condicion"])
+    mostrar("Celda vacía", "personaje_2 None",
+            LUGARES, rango=(2, 2), separador=";", columnas=["lugar", "personaje_2"])
     mostrar("Separado por espacios y sin encabezado", "columnas columna_1 a columna_4",
             EMPLEADOS, n_filas=2, separador=None, encabezado=False)
     mostrar("Encabezado con una columna repetida y otra sin nombre",
-            "telefono_2 y columna_6, con un aviso por cada una",
-            CLIENTES, n_filas=2, separador=";")
+            "personaje_2 y columna_7, con un aviso por cada una",
+            LUGARES, n_filas=2, separador=";")
 
     print("\n----- Selección -----")
-    mostrar("Menos de 10 unidades, solo nombre y precio (el ejemplo de la consigna)",
-            "Teclado mecánico, 62000.0",
-            PRODUCTOS, columnas=["nombre", "precio"], filtro=lambda fila: fila["stock"] < 10)
-    mostrar("De las filas 4 a 10, las 2 primeras de menos de 10000",
-            "Taza de cerámica y Lapicera de gel",
-            PRODUCTOS, rango=(4, 10), filtro=lambda fila: fila["precio"] < 10000, n_filas=2,
-            columnas=["nombre", "precio"])
+    mostrar("Tier 10 o más, solo nombre y tier (como el ejemplo de la consigna)",
+            "The Summit B-Hell Side, Glyph D Side, Forsaken Undercity y Superposition",
+            NIVELES, columnas=["nombre", "tier"], filtro=lambda fila: fila["tier"] >= 10)
+    mostrar("De las filas 5 a 15, las 2 primeras oficiales",
+            "The Summit C-Side y Core C-Side",
+            NIVELES, rango=(5, 15), filtro=lambda fila: fila["oficial"], n_filas=2,
+            columnas=["nombre", "tier"])
 
     print("\n----- Errores -----")
-    mostrar_error("Columna que no existe", PRODUCTOS, columnas=["marca"])
-    mostrar_error("Rango que termina antes de empezar", PRODUCTOS, rango=(5, 2))
+    mostrar_error("Columna que no existe", NIVELES, columnas=["autor"])
+    mostrar_error("Rango que termina antes de empezar", NIVELES, rango=(5, 2))
     mostrar_error("Filtro que falla con una celda vacía",
-                  PRODUCTOS, filtro=lambda fila: fila["calificacion"] > 4)
+                  NIVELES, filtro=lambda fila: "sin morir" in fila["condicion"])
     mostrar_error("Valor que no se puede convertir al tipo pedido",
-                  PRODUCTOS, tipos={"nombre": int})
-    mostrar_error("Filas con distinta cantidad de campos", CLIENTES, separador=",")
+                  NIVELES, tipos={"nombre": int})
+    mostrar_error("Filas con distinta cantidad de campos", LUGARES, separador=",")
     mostrar_error("Archivo que no existe", CARPETA / "no_existe.csv")
 
     with open(VACIO, "w", encoding="utf-8") as archivo:
