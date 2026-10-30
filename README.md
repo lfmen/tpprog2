@@ -30,11 +30,11 @@ Para leer cualquier archivo, desde la consola o desde un programa guardado en es
 ```python
 from lector.seleccion import leer_tabla
 
-leer_tabla("retos.csv")
-# [{'reto': 'The Summit B-Hell Side', 'tier': 13, 'etiquetas': 'C/FC'}, ...]
+leer_tabla("challenges.csv")
+# [{'Tier': 13, 'Challenge Name': 'The Summit B-Hell Side [C/FC]', 'First Clear URL': 'https://...'}, ...]
 
-leer_tabla("retos.csv", columnas=["reto", "tier"], filtro=lambda fila: fila["tier"] >= 12)
-# [{'reto': 'The Summit B-Hell Side', 'tier': 13}, {'reto': 'Glyph D Side', 'tier': 12}]
+leer_tabla("challenges.csv", columnas=["Challenge Name"], filtro=lambda fila: fila["Tier"] >= 12)
+# [{'Challenge Name': 'The Summit B-Hell Side [C/FC]'}, {'Challenge Name': 'Glyph D Side'}]
 ```
 
 Si el archivo está en otra carpeta, se pasa la ruta completa con `/`:
@@ -51,7 +51,7 @@ Si el archivo está en otra carpeta, se pasa la ruta completa con `/`:
 | `columnas` | Qué columnas devolver. | `columnas=["nombre", "precio"]` |
 
 Para verlo como tabla, en el programa de la demostración y no en el lector:
-`pd.DataFrame(leer_tabla("retos.csv"))`. Hay que mostrar también la lista, porque pandas
+`pd.DataFrame(leer_tabla("challenges.csv"))`. Hay que mostrar también la lista, porque pandas
 muestra los `None` como `NaN`.
 
 ## Cómo funciona
@@ -147,9 +147,9 @@ ahí no existe `__file__`.
 
 | Archivo | Qué prueba |
 |---|---|
-| `retos.csv` | Comas, encabezado, finales de línea de Windows, una línea vacía, comas entre comillas, celdas vacías |
-| `empleados.txt` | Separado por espacios, sin encabezado, campos con espacios entre comillas, una columna con enteros y decimales |
-| `lugares.csv` | Punto y coma, guardado por Excel (con BOM), una columna repetida y otra sin nombre |
+| `challenges.csv` | Comas, encabezado con espacios en los nombres, finales de línea de Windows |
+| `empleados.txt` | Separado por espacios, sin encabezado, una línea vacía, campos con espacios entre comillas, una columna con enteros y decimales |
+| `lugares.csv` | Punto y coma, guardado por Excel (con BOM), comas dentro de los campos, una columna repetida y otra sin nombre, celdas vacías |
 
 ## Organización
 
@@ -163,7 +163,7 @@ G17_Capella_Mengarelli_Morello/
 │   ├── tipos.py        convierte cada valor a su tipo
 │   └── seleccion.py    elige filas y columnas, y tiene leer_tabla
 ├── ejemplos.py         ejemplos de uso, con los tres archivos de abajo
-├── retos.csv           separado por comas, con encabezado
+├── challenges.csv      separado por comas, con encabezado
 ├── empleados.txt       separado por espacios, sin encabezado
 └── lugares.csv         separado por punto y coma, guardado con Excel
 ```

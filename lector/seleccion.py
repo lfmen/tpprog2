@@ -3,7 +3,7 @@
 Recibe la tabla que da tipos.py, ya convertida. Las funciones van de la más chica a la
 principal, leer_tabla, que junta las tres partes:
 
-    filas = leer_tabla("retos.csv", columnas=["reto"], filtro=lambda fila: fila["tier"] >= 10)
+    filas = leer_tabla("challenges.csv", filtro=lambda fila: fila["Tier"] >= 10)
 
 Decisiones:
     - Las filas se cuentan desde 1: la primera después del encabezado es la fila 1.
@@ -223,8 +223,8 @@ def leer_tabla(ruta, separador=",", encabezado=True, tipos=None,
     -------
     list of dict
         Una fila por diccionario.
-        leer_tabla("retos.csv", columnas=["reto", "tier"], filtro=lambda fila: fila["tier"] >= 12)
-        -> [{"reto": "The Summit B-Hell Side", "tier": 13}, {"reto": "Glyph D Side", "tier": 12}]
+        leer_tabla("challenges.csv", columnas=["Challenge Name"], filtro=lambda fila: fila["Tier"] >= 12)
+        -> [{"Challenge Name": "The Summit B-Hell Side [C/FC]"}, {"Challenge Name": "Glyph D Side"}]
     """
     columnas_tabla, filas = leer_filas(ruta, separador, encabezado)
     filas = convertir_filas(columnas_tabla, filas, tipos)

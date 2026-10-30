@@ -3,7 +3,7 @@
 Todos los campos quedan como texto: convertirlos es tarea de tipos.py. Las funciones van de la
 más chica a la principal, leer_filas, que usa a todas las de arriba:
 
-    columnas, filas = leer_filas("retos.csv")
+    columnas, filas = leer_filas("challenges.csv")
 """
 
 import warnings

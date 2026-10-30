@@ -11,10 +11,10 @@ from lector.seleccion import leer_tabla
 
 CARPETA = Path(__file__).parent  # la carpeta de este archivo, donde están los datos
 
-RETOS = CARPETA / "retos.csv"          # separado por comas, con encabezado
-EMPLEADOS = CARPETA / "empleados.txt"  # separado por espacios, sin encabezado
-LUGARES = CARPETA / "lugares.csv"      # separado por punto y coma, guardado con Excel
-VACIO = CARPETA / "vacio.csv"          # se crea y se borra en el ejemplo de archivo vacío
+CHALLENGES = CARPETA / "challenges.csv"  # separado por comas, con encabezado
+EMPLEADOS = CARPETA / "empleados.txt"    # separado por espacios, sin encabezado
+LUGARES = CARPETA / "lugares.csv"        # separado por punto y coma, guardado con Excel
+VACIO = CARPETA / "vacio.csv"            # se crea y se borra en el ejemplo de archivo vacío
 
 
 def mostrar(titulo, esperado, ruta, **opciones):
@@ -36,38 +36,38 @@ def mostrar_error(titulo, ruta, **opciones):
 
 if __name__ == "__main__":
     print("----- Lectura y tipos -----")
-    mostrar("Tipos adivinados", "tier int, etiquetas str y None donde está vacía",
-            RETOS, n_filas=2)
-    mostrar("Tipo elegido por el usuario", "tier queda como texto: '13' y '12'",
-            RETOS, n_filas=2, tipos={"tier": str}, columnas=["reto", "tier"])
-    mostrar("Línea vacía y coma entre comillas",
-            "The Summit C-Side y Destro's Compact Sides con 'All Chapters, FC'",
-            RETOS, rango=(8, 9), columnas=["reto", "etiquetas"])
-    mostrar("Celda vacía", "etiquetas None",
-            RETOS, rango=(2, 2), columnas=["reto", "etiquetas"])
+    mostrar("Tipos adivinados", "Tier int, Challenge Name y First Clear URL str",
+            CHALLENGES, n_filas=2)
+    mostrar("Tipo elegido por el usuario", "Tier queda como texto: '13' y '12'",
+            CHALLENGES, n_filas=2, tipos={"Tier": str}, columnas=["Tier", "Challenge Name"])
     mostrar("Separado por espacios y sin encabezado",
-            "columnas columna_1 a columna_5, columna_4 float porque tiene 40 y 37.5, columna_5 bool",
+            "columna_1 a columna_5, columna_4 float (tiene 40 y 37.5) y columna_5 bool",
             EMPLEADOS, n_filas=2, separador=None, encabezado=False)
+    mostrar("Línea vacía y espacios entre comillas",
+            "Diego López y Elena Martínez, con 'Recursos Humanos' en un solo campo",
+            EMPLEADOS, rango=(4, 5), separador=None, encabezado=False)
     mostrar("Encabezado con una columna repetida y otra sin nombre",
             "personaje_2 y columna_7, con un aviso por cada una",
             LUGARES, n_filas=2, separador=";")
+    mostrar("Celda vacía", "personaje_2 None",
+            LUGARES, rango=(2, 2), separador=";", columnas=["lugar", "personaje_2"])
 
     print("\n----- Selección -----")
-    mostrar("Tier 10 o más, solo reto y tier (como el ejemplo de la consigna)",
-            "The Summit B-Hell Side, Glyph D Side, Forsaken Undercity y Superposition",
-            RETOS, columnas=["reto", "tier"], filtro=lambda fila: fila["tier"] >= 10)
-    mostrar("De las filas 5 a 15, las 2 primeras de tier 5 o menos",
-            "Reflection C-Side y Mirror Temple C-Side",
-            RETOS, rango=(5, 15), filtro=lambda fila: fila["tier"] <= 5, n_filas=2,
-            columnas=["reto", "tier"])
+    mostrar("Tier 11 o más, solo nombre y tier (como el ejemplo de la consigna)",
+            "The Summit B-Hell Side, Glyph D Side y los tres de tier 11",
+            CHALLENGES, columnas=["Challenge Name", "Tier"], filtro=lambda fila: fila["Tier"] >= 11)
+    mostrar("De las filas 10 a 40, las 2 primeras con [FC] en el nombre",
+            "Destro's Compact Sides y Motivation",
+            CHALLENGES, rango=(10, 40), filtro=lambda fila: "[FC]" in fila["Challenge Name"],
+            n_filas=2, columnas=["Challenge Name", "Tier"])
 
     print("\n----- Errores -----")
-    mostrar_error("Columna que no existe", RETOS, columnas=["autor"])
-    mostrar_error("Rango que termina antes de empezar", RETOS, rango=(5, 2))
+    mostrar_error("Columna que no existe", CHALLENGES, columnas=["autor"])
+    mostrar_error("Rango que termina antes de empezar", CHALLENGES, rango=(5, 2))
     mostrar_error("Filtro que falla con una celda vacía",
-                  RETOS, filtro=lambda fila: "FC" in fila["etiquetas"])
+                  LUGARES, separador=";", filtro=lambda fila: len(fila["personaje_2"]) > 3)
     mostrar_error("Valor que no se puede convertir al tipo pedido",
-                  RETOS, tipos={"reto": int})
+                  CHALLENGES, tipos={"Challenge Name": int})
     mostrar_error("Filas con distinta cantidad de campos", LUGARES, separador=",")
     mostrar_error("Archivo que no existe", CARPETA / "no_existe.csv")
 
